@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub User Search & Contributions</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: #0d1117;
+            color: #e6edf3;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #39d353, #26a641);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .search-container {
+            background: #161b22;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #30363d;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .search-input {
+            flex: 1;
+            max-width: 400px;
+            padding: 12px 16px;
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            color: #e6edf3;
+            font-size: 16px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #238636;
+            box-shadow: 0 0 0 3px rgba(35, 134, 54, 0.3);
+        }
+
+        .btn {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 120px;
+            justify-content: center;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #2ea043;
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            background: #484f58;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .suggested-users {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .suggested-user {
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #7d8590;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .suggested-user:hover {
+            background: #30363d;
+            color: #e6edf3;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7d8590;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #30363d;
+            border-radius: 50%;
+            border-top-color: #39d353;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #f85149;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .user-profile {
+            background: #161b22;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #30363d;
+        }
+
+        .profile-header {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid #30363d;
+        }
+
+        .profile-info {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .profile-name {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .profile-username {
+            color: #7d8590;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .profile-bio {
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #7d8590;
+        }
+
+        .stat-number {
+            color: #e6edf3;
+            font-weight: 600;
+        }
+
+        .profile-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .profile-link {
+            color: #58a6ff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .profile-link:hover {
+            text-decoration: underline;
+        }
+
+        .contributions-section {
+            background: #161b22;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #30363d;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .download-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 12px;
+            background: #21262d;
+            border: 1px solid #30363d;
+        }
+
+        .btn-small:hover:not(:disabled) {
+            background: #30363d;
+        }
+
+        .contributions-wrapper {
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+
+        .contributions-graph {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px;
+            min-width: 800px;
+        }
+
+        .months {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 3px;
+            margin-bottom: 5px;
+            grid-column: 2;
+        }
+
+        .month {
+            font-size: 12px;
+            color: #7d8590;
+            text-align: center;
+        }
+
+        .days-of-week {
+            display: grid;
+            grid-template-rows: repeat(7, 1fr);
+            gap: 3px;
+            padding-right: 10px;
+        }
+
+        .day-label {
+            font-size: 12px;
+            color: #7d8590;
+            text-align: right;
+            line-height: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .weeks {
+            display: grid;
+            grid-template-columns: repeat(53, 1fr);
+            gap: 3px;
+        }
+
+        .week {
+            display: grid;
+            grid-template-rows: repeat(7, 1fr);
+            gap: 3px;
+        }
+
+        .day {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            border: 1px solid #1e2328;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            position: relative;
+        }
+
+        .day:hover {
+            border-color: #30363d;
+            transform: scale(1.1);
+        }
+
+        .day.level-0 {
+            background-color: #161b22;
+        }
+
+        .day.level-1 {
+            background-color: #0e4429;
+        }
+
+        .day.level-2 {
+            background-color: #006d32;
+        }
+
+        .day.level-3 {
+            background-color: #26a641;
+        }
+
+        .day.level-4 {
+            background-color: #39d353;
+        }
+
+        .legend {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 5px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #7d8590;
+        }
+
+        .legend-item {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            border: 1px solid #1e2328;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: #1c2128;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #e6edf3;
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .tooltip.show {
+            opacity: 1;
+        }
+
+        .repos-section {
+            background: #161b22;
+            border-radius: 12px;
+            padding: 30px;
+            border: 1px solid #30363d;
+        }
+
+        .repos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .repo-card {
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            transition: border-color 0.2s;
+        }
+
+        .repo-card:hover {
+            border-color: #58a6ff;
+        }
+
+        .repo-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .repo-name {
+            color: #58a6ff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .repo-name:hover {
+            text-decoration: underline;
+        }
+
+        .repo-visibility {
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #7d8590;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .repo-description {
+            color: #7d8590;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .repo-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+            color: #7d8590;
+        }
+
+        .repo-stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .language-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .search-form {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .search-input {
+                max-width: none;
+                width: 100%;
+            }
+
+            .profile-header {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .day {
+                width: 10px;
+                height: 10px;
+            }
+
+            .legend-item {
+                width: 10px;
+                height: 10px;
+            }
+
+            .repos-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>GitHub User Search</h1>
+            <p>Search for GitHub users and view their contribution graphs and repositories</p>
+        </div>
+
+        <div class="search-container">
+            <form class="search-form" id="searchForm">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="usernameInput" 
+                    placeholder="Enter GitHub username (e.g., octocat)"
+                    autocomplete="off"
+                >
+                <button type="submit" class="btn" id="searchBtn">
+                    🔍 Search User
+                </button>
+            </form>
+            
+            <div class="suggested-users">
+                <span style="color: #7d8590; margin-right: 10px;">Try:</span>
+                <div class="suggested-user" onclick="searchUser('sengkue')">sengkue</div>
+                <div class="suggested-user" onclick="searchUser('octocat')">octocat</div>
+                <div class="suggested-user" onclick="searchUser('torvalds')">torvalds</div>
+                <div class="suggested-user" onclick="searchUser('gaearon')">gaearon</div>
+                <div class="suggested-user" onclick="searchUser('sindresorhus')">sindresorhus</div>
+                <div class="suggested-user" onclick="searchUser('addyosmani')">addyosmani</div>
+            </div>
+        </div>
+
+        <div id="loadingDiv" class="loading hidden">
+            <div class="spinner"></div>
+            Loading user data...
+        </div>
+
+        <div id="errorDiv" class="error hidden"></div>
+
+        <div id="resultsContainer" class="hidden">
+            <div class="user-profile" id="userProfile">
+                <!-- User profile will be populated here -->
+            </div>
+
+            <div class="contributions-section">
+                <div class="section-header">
+                    <h2 class="section-title">Contribution Activity</h2>
+                    <div class="download-options">
+                        <button class="btn btn-small" onclick="downloadContributionsAsPNG()">📷 PNG</button>
+                        <button class="btn btn-small" onclick="downloadContributionsAsSVG()">📐 SVG</button>
+                        <button class="btn btn-small" onclick="downloadContributionsAsJSON()">📄 Data</button>
+                    </div>
+                </div>
+                
+                <div class="contributions-wrapper">
+                    <div class="contributions-graph">
+                        <div class="months" id="monthsContainer"></div>
+                        <div class="days-of-week">
+                            <div class="day-label"></div>
+                            <div class="day-label">Mon</div>
+                            <div class="day-label"></div>
+                            <div class="day-label">Wed</div>
+                            <div class="day-label"></div>
+                            <div class="day-label">Fri</div>
+                            <div class="day-label"></div>
+                        </div>
+                        <div class="weeks" id="weeksContainer"></div>
+                    </div>
+                </div>
+
+                <div class="legend">
+                    <span>Less</span>
+                    <div class="legend-item level-0"></div>
+                    <div class="legend-item level-1"></div>
+                    <div class="legend-item level-2"></div>
+                    <div class="legend-item level-3"></div>
+                    <div class="legend-item level-4"></div>
+                    <span>More</span>
+                </div>
+            </div>
+
+            <div class="repos-section">
+                <div class="section-header">
+                    <h2 class="section-title">3D Profile Cards Download 👉</h2>
+                    <div class="download-options">
+                        <button class="btn btn-small" onclick="download3DProfile('modern')">🎨 Modern 3D</button>
+                        <button class="btn btn-small" onclick="download3DProfile('glassmorphism')">💎 Glass 3D</button>
+                        <button class="btn btn-small" onclick="download3DProfile('neon')">⚡ Neon 3D</button>
+                        <button class="btn btn-small" onclick="download3DProfile('holographic')">🌈 Holographic</button>
+                    </div>
+                </div>
+            </div>
+            <div class="repos-section">
+                <div class="section-header">
+                    <h2 class="section-title">Popular Repositories</h2>
+                </div>
+                <div class="repos-grid" id="reposGrid">
+                    <!-- Repositories will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        let currentUser = null;
+        let contributionData = {};
+
+        // Language colors mapping
+        const languageColors = {
+            'JavaScript': '#f1e05a',
+            'TypeScript': '#2b7489',
+            'Python': '#3572A5',
+            'Java': '#b07219',
+            'C++': '#f34b7d',
+            'C': '#555555',
+            'C#': '#239120',
+            'PHP': '#4F5D95',
+            'Ruby': '#701516',
+            'Go': '#00ADD8',
+            'Rust': '#dea584',
+            'Swift': '#ffac45',
+            'Kotlin': '#F18E33',
+            'HTML': '#e34c26',
+            'CSS': '#1572B6',
+            'Shell': '#89e051',
+            'Vue': '#2c3e50',
+            'React': '#61dafb'
+        };
+
+        document.getElementById('searchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('usernameInput').value.trim();
+            if (username) {
+                await searchUser(username);
+            }
+        });
+
+        async function searchUser(username) {
+            document.getElementById('usernameInput').value = username;
+            document.getElementById('loadingDiv').classList.remove('hidden');
+            document.getElementById('errorDiv').classList.add('hidden');
+            document.getElementById('resultsContainer').classList.add('hidden');
+            document.getElementById('searchBtn').disabled = true;
+
+            try {
+                // Fetch user data
+                const userResponse = await fetch(`https://api.github.com/users/${username}`);
+                if (!userResponse.ok) {
+                    throw new Error(userResponse.status === 404 ? 'User not found' : 'Failed to fetch user data');
+                }
+                const userData = await userResponse.json();
+
+                // Fetch user repositories
+                const reposResponse = await fetch(`https://api.github.com/users/${username}/repos?sort=stars&per_page=6`);
+                const reposData = await reposResponse.json();
+
+                // Generate mock contribution data (GitHub API requires authentication for real contribution data)
+                generateMockContributionData();
+
+                currentUser = userData;
+                displayUserProfile(userData);
+                displayContributions();
+                displayRepositories(reposData);
+
+                document.getElementById('resultsContainer').classList.remove('hidden');
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                document.getElementById('loadingDiv').classList.add('hidden');
+                document.getElementById('searchBtn').disabled = false;
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorDiv');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+
+        function displayUserProfile(user) {
+            const profileDiv = document.getElementById('userProfile');
+            
+            const joinDate = new Date(user.created_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long'
+            });
+
+            profileDiv.innerHTML = `
+                <div class="profile-header">
+                    <img src="${user.avatar_url}" alt="${user.login}" class="profile-avatar">
+                    <div class="profile-info">
+                        <h2 class="profile-name">${user.name || user.login}</h2>
+                        <p class="profile-username">@${user.login}</p>
+                        ${user.bio ? `<p class="profile-bio">${user.bio}</p>` : ''}
+                        
+                        <div class="profile-stats">
+                            <div class="stat-item">
+                                👥 <span class="stat-number">${user.followers.toLocaleString()}</span> followers
+                            </div>
+                            <div class="stat-item">
+                                👤 <span class="stat-number">${user.following.toLocaleString()}</span> following
+                            </div>
+                            <div class="stat-item">
+                                📚 <span class="stat-number">${user.public_repos.toLocaleString()}</span> repositories
+                            </div>
+                            ${user.location ? `<div class="stat-item">📍 ${user.location}</div>` : ''}
+                            <div class="stat-item">📅 Joined ${joinDate}</div>
+                        </div>
+
+                        <div class="profile-links">
+                            <a href="${user.html_url}" target="_blank" class="profile-link">
+                                🔗 GitHub Profile
+                            </a>
+                            ${user.blog ? `<a href="${user.blog.startsWith('http') ? user.blog : 'https://' + user.blog}" target="_blank" class="profile-link">🌐 Website</a>` : ''}
+                            ${user.twitter_username ? `<a href="https://twitter.com/${user.twitter_username}" target="_blank" class="profile-link">🐦 Twitter</a>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateMockContributionData() {
+            contributionData = {};
+            const currentDate = new Date();
+            const startDate = new Date(currentDate.getFullYear() - 1, currentDate.getMonth(), currentDate.getDate());
+            
+            let currentDateIter = new Date(startDate);
+            while (currentDateIter <= currentDate) {
+                const dateStr = currentDateIter.toISOString().split('T')[0];
+                const dayOfWeek = currentDateIter.getDay();
+                
+                // More realistic pattern: more activity on weekdays
+                let baseProbability = dayOfWeek === 0 || dayOfWeek === 6 ? 0.3 : 0.7;
+                
+                // Add seasonal variation
+                const monthOfYear = currentDateIter.getMonth();
+                if (monthOfYear >= 5 && monthOfYear <= 7) baseProbability *= 0.8; // Summer
+                if (monthOfYear >= 10 || monthOfYear <= 1) baseProbability *= 1.2; // Winter
+                
+                if (Math.random() < baseProbability) {
+                    contributionData[dateStr] = Math.floor(Math.random() * 15) + 1;
+                } else {
+                    contributionData[dateStr] = 0;
+                }
+                
+                currentDateIter.setDate(currentDateIter.getDate() + 1);
+            }
+        }
+
+        function displayContributions() {
+            generateMonths();
+            generateWeeks();
+            updateContributionGraph();
+        }
+
+        function generateMonths() {
+            const monthsContainer = document.getElementById('monthsContainer');
+            monthsContainer.innerHTML = '';
+            
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            for (let i = 0; i < 12; i++) {
+                const monthDiv = document.createElement('div');
+                monthDiv.className = 'month';
+                monthDiv.textContent = months[i];
+                monthsContainer.appendChild(monthDiv);
+            }
+        }
+
+        function generateWeeks() {
+            const weeksContainer = document.getElementById('weeksContainer');
+            weeksContainer.innerHTML = '';
+            
+            const currentDate = new Date();
+            const startDate = new Date(currentDate.getFullYear() - 1, currentDate.getMonth(), currentDate.getDate());
+            
+            let currentWeekDate = new Date(startDate);
+            currentWeekDate.setDate(currentWeekDate.getDate() - currentWeekDate.getDay());
+            
+            for (let week = 0; week < 53; week++) {
+                const weekDiv = document.createElement('div');
+                weekDiv.className = 'week';
+                
+                for (let day = 0; day < 7; day++) {
+                    const dayDiv = document.createElement('div');
+                    dayDiv.className = 'day level-0';
+                    
+                    const dayDate = new Date(currentWeekDate);
+                    dayDate.setDate(dayDate.getDate() + day);
+                    
+                    if (dayDate >= startDate && dayDate <= currentDate) {
+                        const dateStr = dayDate.toISOString().split('T')[0];
+                        dayDiv.dataset.date = dateStr;
+                        dayDiv.addEventListener('mouseenter', showTooltip);
+                        dayDiv.addEventListener('mouseleave', hideTooltip);
+                    } else {
+                        dayDiv.style.visibility = 'hidden';
+                    }
+                    
+                    weekDiv.appendChild(dayDiv);
+                }
+                
+                weeksContainer.appendChild(weekDiv);
+                currentWeekDate.setDate(currentWeekDate.getDate() + 7);
+            }
+        }
+
+        function updateContributionGraph() {
+            const days = document.querySelectorAll('.day[data-date]');
+            let maxContributions = 0;
+            
+            // Calculate max contributions for level scaling
+            Object.values(contributionData).forEach(count => {
+                if (count > maxContributions) maxContributions = count;
+            });
+            
+            days.forEach(day => {
+                const dateStr = day.dataset.date;
+                const contributions = contributionData[dateStr] || 0;
+                
+                // Remove all level classes
+                day.className = day.className.replace(/level-\d/g, '');
+                
+                // Add appropriate level class
+                let level = 0;
+                if (contributions > 0) {
+                    if (maxContributions <= 4) {
+                        level = contributions;
+                    } else {
+                        level = Math.ceil((contributions / maxContributions) * 4);
+                    }
+                    level = Math.min(level, 4);
+                }
+                
+                day.classList.add(`level-${level}`);
+            });
+        }
+
+        function displayRepositories(repos) {
+            const reposGrid = document.getElementById('reposGrid');
+            reposGrid.innerHTML = '';
+            
+            repos.forEach(repo => {
+                const repoCard = document.createElement('div');
+                repoCard.className = 'repo-card';
+                
+                const languageColor = languageColors[repo.language] || '#6e7681';
+                
+                repoCard.innerHTML = `
+                    <div class="repo-header">
+                        <a href="${repo.html_url}" target="_blank" class="repo-name">${repo.name}</a>
+                        <span class="repo-visibility">${repo.private ? 'Private' : 'Public'}</span>
+                    </div>
+                    ${repo.description ? `<p class="repo-description">${repo.description}</p>` : ''}
+                    <div class="repo-stats">
+                        ${repo.language ? `
+                            <div class="repo-stat">
+                                <div class="language-color" style="background-color: ${languageColor}"></div>
+                                ${repo.language}
+                            </div>
+                        ` : ''}
+                        <div class="repo-stat">⭐ ${repo.stargazers_count.toLocaleString()}</div>
+                        <div class="repo-stat">🍴 ${repo.forks_count.toLocaleString()}</div>
+                        ${repo.license ? `<div class="repo-stat">📄 ${repo.license.name}</div>` : ''}
+                    </div>
+                `;
+                
+                reposGrid.appendChild(repoCard);
+            });
+        }
+
+        function showTooltip(event) {
+            const tooltip = document.getElementById('tooltip');
+            const dateStr = event.target.dataset.date;
+            const contributions = contributionData[dateStr] || 0;
+            const date = new Date(dateStr);
+            const formattedDate = date.toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric' 
+            });
+            
+            tooltip.innerHTML = `<strong>${contributions} contributions</strong><br>${formattedDate}`;
+            tooltip.style.left = event.pageX + 10 + 'px';
+            tooltip.style.top = event.pageY - 10 + 'px';
+            tooltip.classList.add('show');
+        }
+
+        function hideTooltip() {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.classList.remove('show');
+        }
+
+        function downloadContributionsAsPNG() {
+            if (!currentUser) return;
+            
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = 1200;
+            canvas.height = 400;
+            
+            // Fill background
+            ctx.fillStyle = '#0d1117';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw title
+            ctx.fillStyle = '#e6edf3';
+            ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif';
+            ctx.fillText(`${currentUser.login}'s GitHub Contributions`, 50, 40);
+            
+            // Draw contribution squares
+            const days = document.querySelectorAll('.day[data-date]');
+            const startX = 100;
+            const startY = 80;
+            const cellSize = 14;
+            const gap = 3;
+            
+            days.forEach((day, index) => {
+                const week = Math.floor(index / 7);
+                const dayOfWeek = index % 7;
+                
+                const x = startX + week * (cellSize + gap);
+                const y = startY + dayOfWeek * (cellSize + gap);
+                
+                // Get color based on level
+                let color = '#161b22';
+                if (day.classList.contains('level-1')) color = '#0e4429';
+                if (day.classList.contains('level-2')) color = '#006d32';
+                if (day.classList.contains('level-3')) color = '#26a641';
+                if (day.classList.contains('level-4')) color = '#39d353';
+                
+                ctx.fillStyle = color;
+                ctx.fillRect(x, y, cellSize, cellSize);
+                
+                // Add border
+                ctx.strokeStyle = '#1e2328';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(x, y, cellSize, cellSize);
+            });
+            
+            // Add legend
+            const legendY = canvas.height - 50;
+            ctx.fillStyle = '#7d8590';
+            ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif';
+            ctx.fillText('Less', canvas.width - 250, legendY + 10);
+            
+            const legendColors = ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'];
+            legendColors.forEach((color, index) => {
+                ctx.fillStyle = color;
+                ctx.fillRect(canvas.width - 200 + index * 20, legendY, 12, 12);
+                ctx.strokeStyle = '#1e2328';
+                ctx.strokeRect(canvas.width - 200 + index * 20, legendY, 12, 12);
+            });
+            
+            ctx.fillStyle = '#7d8590';
+            ctx.fillText('More', canvas.width - 80, legendY + 10);
+            
+            // Download the image
+            const link = document.createElement('a');
+            link.download = `${currentUser.login}-github-contributions.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function downloadContributionsAsSVG() {
+            if (!currentUser) return;
+            
+            const days = document.querySelectorAll('.day[data-date]');
+            const cellSize = 12;
+            const gap = 3;
+            const startX = 100;
+            const startY = 80;
+            
+            let svg = `<svg width="1200" height="400" xmlns="http://www.w3.org/2000/svg">
+                <rect width="100%" height="100%" fill="#0d1117"/>
+                <text x="50" y="40" fill="#e6edf3" font-family="system-ui" font-size="24" font-weight="bold">${currentUser.login}'s GitHub Contributions</text>`;
+            
+            days.forEach((day, index) => {
+                const week = Math.floor(index / 7);
+                const dayOfWeek = index % 7;
+                
+                const x = startX + week * (cellSize + gap);
+                const y = startY + dayOfWeek * (cellSize + gap);
+                
+                let color = '#161b22';
+                if (day.classList.contains('level-1')) color = '#0e4429';
+                if (day.classList.contains('level-2')) color = '#006d32';
+                if (day.classList.contains('level-3')) color = '#26a641';
+                if (day.classList.contains('level-4')) color = '#39d353';
+                
+                svg += `<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" fill="${color}" stroke="#1e2328" stroke-width="1" rx="2"/>`;
+            });
+            
+            // Add legend
+            const legendY = 350;
+            svg += `<text x="950" y="${legendY + 10}" fill="#7d8590" font-family="system-ui" font-size="12">Less</text>`;
+            
+            const legendColors = ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'];
+            legendColors.forEach((color, index) => {
+                svg += `<rect x="${1000 + index * 20}" y="${legendY}" width="12" height="12" fill="${color}" stroke="#1e2328" stroke-width="1" rx="2"/>`;
+            });
+            
+            svg += `<text x="1120" y="${legendY + 10}" fill="#7d8590" font-family="system-ui" font-size="12">More</text>`;
+            svg += '</svg>';
+            
+            const blob = new Blob([svg], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.download = `${currentUser.login}-github-contributions.svg`;
+            link.href = url;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadContributionsAsJSON() {
+            if (!currentUser) return;
+            
+            const totalContributions = Object.values(contributionData).reduce((sum, val) => sum + val, 0);
+            
+            const data = {
+                user: {
+                    username: currentUser.login,
+                    name: currentUser.name,
+                    avatar_url: currentUser.avatar_url,
+                    html_url: currentUser.html_url
+                },
+                contributionData,
+                statistics: {
+                    totalContributions,
+                    averagePerDay: (totalContributions / Object.keys(contributionData).length).toFixed(2),
+                    maxContributionsInDay: Math.max(...Object.values(contributionData))
+                },
+                exportDate: new Date().toISOString(),
+                dateRange: {
+                    start: Math.min(...Object.keys(contributionData)),
+                    end: Math.max(...Object.keys(contributionData))
+                }
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.download = `${currentUser.login}-github-data.json`;
+            link.href = url;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        // Add keyboard support
+        document.getElementById('usernameInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('searchForm').dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // Auto-focus search input
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('usernameInput').focus();
+        });
+
+        async function download3DProfile(style = 'modern') {
+            if (!currentUser) return;
+            
+            // Show loading state
+            const loadingBtn = event.target;
+            const originalText = loadingBtn.innerHTML;
+            loadingBtn.innerHTML = '⏳ Creating...';
+            loadingBtn.disabled = true;
+            
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // High resolution for crisp 3D effects
+                canvas.width = 1200;
+                canvas.height = 800;
+                
+                // Create gradients and effects based on style
+                const styles = {
+                    modern: {
+                        bg: createModernBackground(ctx, canvas),
+                        cardBg: 'rgba(22, 27, 34, 0.95)',
+                        accent: '#39d353',
+                        secondary: '#58a6ff',
+                        shadow: 'rgba(0, 0, 0, 0.3)'
+                    },
+                    glassmorphism: {
+                        bg: createGlassBackground(ctx, canvas),
+                        cardBg: 'rgba(255, 255, 255, 0.1)',
+                        accent: '#00d4ff',
+                        secondary: '#ff6b6b',
+                        shadow: 'rgba(255, 255, 255, 0.2)'
+                    },
+                    neon: {
+                        bg: createNeonBackground(ctx, canvas),
+                        cardBg: 'rgba(0, 0, 0, 0.8)',
+                        accent: '#ff0080',
+                        secondary: '#00ff88',
+                        shadow: 'rgba(255, 0, 128, 0.5)'
+                    },
+                    holographic: {
+                        bg: createHolographicBackground(ctx, canvas),
+                        cardBg: 'rgba(13, 17, 23, 0.9)',
+                        accent: '#ff6b35',
+                        secondary: '#f7931e',
+                        shadow: 'rgba(247, 147, 30, 0.4)'
+                    }
+                };
+                
+                const currentStyle = styles[style];
+                
+                // Draw background
+                currentStyle.bg;
+                
+                // Create 3D perspective effect
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const cardWidth = 500;
+                const cardHeight = 600;
+                
+                // Draw multiple shadow layers for 3D depth
+                for (let i = 5; i >= 0; i--) {
+                    const offset = i * 4;
+                    const alpha = 0.1 - (i * 0.015);
+                    
+                    ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+                    drawRoundedRect(ctx, 
+                        centerX - cardWidth/2 + offset, 
+                        centerY - cardHeight/2 + offset, 
+                        cardWidth, cardHeight, 20
+                    );
+                }
+                
+                // Main card background with 3D effect
+                ctx.fillStyle = currentStyle.cardBg;
+                drawRoundedRect(ctx, centerX - cardWidth/2, centerY - cardHeight/2, cardWidth, cardHeight, 20);
+                
+                // Add card border glow effect
+                if (style === 'neon' || style === 'holographic') {
+                    ctx.strokeStyle = currentStyle.accent;
+                    ctx.lineWidth = 3;
+                    ctx.shadowColor = currentStyle.accent;
+                    ctx.shadowBlur = 20;
+                    drawRoundedRectStroke(ctx, centerX - cardWidth/2, centerY - cardHeight/2, cardWidth, cardHeight, 20);
+                    ctx.shadowBlur = 0;
+                }
+                
+                // Profile section
+                const profileY = centerY - cardHeight/2 + 60;
+                
+                // Avatar with 3D ring effect
+                const avatarSize = 120;
+                const avatarX = centerX;
+                const avatarY = profileY + 60;
+                
+                // Draw avatar ring effect
+                for (let i = 0; i < 3; i++) {
+                    const ringSize = avatarSize + (i * 8);
+                    const ringAlpha = 0.3 - (i * 0.1);
+                    
+                    ctx.beginPath();
+                    ctx.arc(avatarX, avatarY, ringSize/2, 0, Math.PI * 2);
+                    ctx.strokeStyle = `${currentStyle.accent}${Math.floor(ringAlpha * 255).toString(16).padStart(2, '0')}`;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+                
+                // Load and draw the actual profile image
+                try {
+                    const avatarImg = await loadImageWithProxy(currentUser.avatar_url);
+                    
+                    // Create circular clipping path for avatar
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(avatarX, avatarY, avatarSize/2, 0, Math.PI * 2);
+                    ctx.clip();
+                    
+                    // Draw the profile image
+                    ctx.drawImage(avatarImg, 
+                        avatarX - avatarSize/2, 
+                        avatarY - avatarSize/2, 
+                        avatarSize, 
+                        avatarSize
+                    );
+                    
+                    ctx.restore();
+                    
+                } catch (error) {
+                    console.log('Could not load profile image, using fallback');
+                    // Fallback: Draw a stylized avatar placeholder
+                    drawAvatarFallback(ctx, avatarX, avatarY, avatarSize, currentStyle.accent);
+                }
+                
+                // Avatar border
+                ctx.strokeStyle = currentStyle.accent;
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(avatarX, avatarY, avatarSize/2, 0, Math.PI * 2);
+                ctx.stroke();
+            
+                // User info with 3D text effects
+                ctx.textAlign = 'center';
+                
+                // Name with shadow effect
+                const nameY = avatarY + avatarSize/2 + 40;
+                draw3DText(ctx, currentUser.name || currentUser.login, centerX, nameY, '32px', currentStyle.accent, style);
+                
+                // Username
+                const usernameY = nameY + 40;
+                draw3DText(ctx, `@${currentUser.login}`, centerX, usernameY, '20px', currentStyle.secondary, style);
+                
+                // Bio
+                if (currentUser.bio) {
+                    const bioY = usernameY + 35;
+                    ctx.fillStyle = '#e6edf3';
+                    ctx.font = '16px -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif';
+                    
+                    // Wrap text
+                    const bioLines = wrapText(ctx, currentUser.bio, cardWidth - 80);
+                    bioLines.forEach((line, index) => {
+                        ctx.fillText(line, centerX, bioY + (index * 22));
+                    });
+                }
+                
+                // Stats section with 3D boxes
+                const statsY = centerY + 50;
+                const stats = [
+                    { label: 'Repositories', value: currentUser.public_repos.toLocaleString(), icon: '📚' },
+                    { label: 'Followers', value: currentUser.followers.toLocaleString(), icon: '👥' },
+                    { label: 'Following', value: currentUser.following.toLocaleString(), icon: '👤' }
+                ];
+                
+                const statBoxWidth = 140;
+                const statBoxHeight = 80;
+                const statSpacing = 20;
+                const totalStatsWidth = (statBoxWidth * 3) + (statSpacing * 2);
+                const startX = centerX - totalStatsWidth/2;
+                
+                stats.forEach((stat, index) => {
+                    const x = startX + (index * (statBoxWidth + statSpacing));
+                    
+                    // 3D stat box
+                    draw3DStatBox(ctx, x, statsY, statBoxWidth, statBoxHeight, stat, currentStyle, style);
+                });
+                
+                // GitHub branding with 3D effect
+                const brandingY = centerY + cardHeight/2 - 40;
+                draw3DText(ctx, 'GitHub Profile', centerX, brandingY, '16px', '#7d8590', style);
+                
+                // Add floating particles effect for some styles
+                if (style === 'neon' || style === 'holographic') {
+                    drawFloatingParticles(ctx, canvas, currentStyle.accent);
+                }
+                
+                // Download
+                const link = document.createElement('a');
+                link.download = `${currentUser.login}-3d-profile-${style}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+            } catch (error) {
+                console.error('Error creating 3D profile:', error);
+                alert('Error creating profile image. Please try again.');
+            } finally {
+                // Restore button state
+                loadingBtn.innerHTML = originalText;
+                loadingBtn.disabled = false;
+            }
+        }
+        
+        // Function to load images with CORS proxy
+        async function loadImageWithProxy(imageUrl) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                
+                img.onload = () => resolve(img);
+                img.onerror = () => {
+                    // Try with a CORS proxy
+                    const proxyImg = new Image();
+                    proxyImg.crossOrigin = 'anonymous';
+                    
+                    proxyImg.onload = () => resolve(proxyImg);
+                    proxyImg.onerror = () => reject(new Error('Failed to load image'));
+                    
+                    // Use a public CORS proxy
+                    proxyImg.src = `https://api.allorigins.win/raw?url=${encodeURIComponent(imageUrl)}`;
+                };
+                
+                img.src = imageUrl;
+            });
+        }
+        
+        // Fallback avatar drawing function
+        function drawAvatarFallback(ctx, x, y, size, accentColor) {
+            const radius = size / 2;
+            
+            // Create gradient background
+            const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+            gradient.addColorStop(0, accentColor);
+            gradient.addColorStop(1, '#30363d');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw user icon
+            ctx.fillStyle = '#e6edf3';
+            ctx.font = `${size * 0.4}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('👤', x, y);
+        }
+        
+        // Enhanced image loading with multiple fallback strategies
+        async function loadProfileImage(avatarUrl) {
+            const strategies = [
+                // Strategy 1: Direct load
+                () => {
+                    return new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.crossOrigin = 'anonymous';
+                        img.onload = () => resolve(img);
+                        img.onerror = reject;
+                        img.src = avatarUrl;
+                    });
+                },
+                
+                // Strategy 2: CORS proxy
+                () => {
+                    return new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.crossOrigin = 'anonymous';
+                        img.onload = () => resolve(img);
+                        img.onerror = reject;
+                        img.src = `https://cors-anywhere.herokuapp.com/${avatarUrl}`;
+                    });
+                },
+                
+                // Strategy 3: Alternative proxy
+                () => {
+                    return new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.crossOrigin = 'anonymous';
+                        img.onload = () => resolve(img);
+                        img.onerror = reject;
+                        img.src = `https://api.allorigins.win/raw?url=${encodeURIComponent(avatarUrl)}`;
+                    });
+                },
+                
+                // Strategy 4: Convert to data URL using fetch
+                async () => {
+                    try {
+                        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(avatarUrl)}`);
+                        const data = await response.json();
+                        
+                        return new Promise((resolve, reject) => {
+                            const img = new Image();
+                            img.onload = () => resolve(img);
+                            img.onerror = reject;
+                            img.src = data.contents;
+                        });
+                    } catch (error) {
+                        throw error;
+                    }
+                }
+            ];
+            
+            for (const strategy of strategies) {
+                try {
+                    const img = await strategy();
+                    return img;
+                } catch (error) {
+                    console.log('Image loading strategy failed, trying next...');
+                    continue;
+                }
+            }
+            
+            throw new Error('All image loading strategies failed');
+        }
+        
+        function createModernBackground(ctx, canvas) {
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#0d1117');
+            gradient.addColorStop(0.5, '#161b22');
+            gradient.addColorStop(1, '#21262d');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Add geometric shapes
+            drawGeometricShapes(ctx, canvas, '#30363d');
+        }
+        
+        function createGlassBackground(ctx, canvas) {
+            const gradient = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, canvas.width);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(0.5, '#764ba2');
+            gradient.addColorStop(1, '#2d1b69');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Add glass orbs
+            drawGlassOrbs(ctx, canvas);
+        }
+        
+        function createNeonBackground(ctx, canvas) {
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Add neon grid
+            drawNeonGrid(ctx, canvas);
+        }
+        
+        function createHolographicBackground(ctx, canvas) {
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#1a1a2e');
+            gradient.addColorStop(0.3, '#16213e');
+            gradient.addColorStop(0.7, '#0f3460');
+            gradient.addColorStop(1, '#533483');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Add holographic lines
+            drawHolographicLines(ctx, canvas);
+        }
+        
+        function drawRoundedRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        function drawRoundedRectStroke(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+            ctx.stroke();
+        }
+        
+        function draw3DText(ctx, text, x, y, fontSize, color, style) {
+            ctx.font = `bold ${fontSize} -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif`;
+            
+            // Shadow layers for 3D effect
+            const shadowLayers = style === 'neon' ? 5 : 3;
+            for (let i = shadowLayers; i > 0; i--) {
+                ctx.fillStyle = style === 'neon' ? `${color}${Math.floor(50 - i*8).toString(16).padStart(2, '0')}` : `rgba(0, 0, 0, ${0.3 - i*0.1})`;
+                ctx.fillText(text, x + i*2, y + i*2);
+            }
+            
+            // Main text
+            ctx.fillStyle = color;
+            if (style === 'neon') {
+                ctx.shadowColor = color;
+                ctx.shadowBlur = 15;
+            }
+            ctx.fillText(text, x, y);
+            ctx.shadowBlur = 0;
+        }
+        
+        function draw3DStatBox(ctx, x, y, width, height, stat, styleConfig, style) {
+            // 3D box effect
+            const depth = 8;
+            
+            // Back face
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            drawRoundedRect(ctx, x + depth, y + depth, width, height, 8);
+            
+            // Main face
+            ctx.fillStyle = styleConfig.cardBg;
+            drawRoundedRect(ctx, x, y, width, height, 8);
+            
+            // Border
+            if (style === 'neon' || style === 'glassmorphism') {
+                ctx.strokeStyle = styleConfig.accent;
+                ctx.lineWidth = 2;
+                if (style === 'neon') {
+                    ctx.shadowColor = styleConfig.accent;
+                    ctx.shadowBlur = 10;
+                }
+                drawRoundedRectStroke(ctx, x, y, width, height, 8);
+                ctx.shadowBlur = 0;
+            }
+            
+            // Content
+            ctx.textAlign = 'center';
+            ctx.fillStyle = styleConfig.accent;
+            ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif';
+            ctx.fillText(stat.icon, x + width/2, y + 30);
+            
+            ctx.fillStyle = '#e6edf3';
+            ctx.font = 'bold 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif';
+            ctx.fillText(stat.value, x + width/2, y + 50);
+            
+            ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif';
+            ctx.fillStyle = '#7d8590';
+            ctx.fillText(stat.label, x + width/2, y + 68);
+        }
+        
+        function drawGeometricShapes(ctx, canvas, color) {
+            ctx.fillStyle = color;
+            ctx.globalAlpha = 0.1;
+            
+            // Draw various geometric shapes
+            for (let i = 0; i < 15; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const size = Math.random() * 100 + 20;
+                
+                if (Math.random() > 0.5) {
+                    // Circle
+                    ctx.beginPath();
+                    ctx.arc(x, y, size/2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    // Rectangle
+                    ctx.fillRect(x, y, size, size);
+                }
+            }
+            
+            ctx.globalAlpha = 1;
+        }
+        
+        function drawGlassOrbs(ctx, canvas) {
+            for (let i = 0; i < 8; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * 80 + 40;
+                
+                const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
+                gradient.addColorStop(1, 'rgba(255, 255, 255, 0.05)');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        function drawNeonGrid(ctx, canvas) {
+            ctx.strokeStyle = '#ff0080';
+            ctx.lineWidth = 1;
+            ctx.globalAlpha = 0.3;
+            
+            const gridSize = 50;
+            
+            for (let x = 0; x <= canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            for (let y = 0; y <= canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            ctx.globalAlpha = 1;
+        }
+        
+        function drawHolographicLines(ctx, canvas) {
+            ctx.strokeStyle = '#ff6b35';
+            ctx.lineWidth = 2;
+            ctx.globalAlpha = 0.4;
+            
+            for (let i = 0; i < 20; i++) {
+                const y = (i * canvas.height) / 20;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            ctx.globalAlpha = 1;
+        }
+        
+        function drawFloatingParticles(ctx, canvas, color) {
+            ctx.fillStyle = color;
+            ctx.globalAlpha = 0.6;
+            
+            for (let i = 0; i < 30; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const size = Math.random() * 4 + 1;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            ctx.globalAlpha = 1;
+        }
+        
+        function wrapText(ctx, text, maxWidth) {
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = words[0];
+            
+            for (let i = 1; i < words.length; i++) {
+                const word = words[i];
+                const width = ctx.measureText(currentLine + ' ' + word).width;
+                if (width < maxWidth) {
+                    currentLine += ' ' + word;
+                } else {
+                    lines.push(currentLine);
+                    currentLine = word;
+                }
+            }
+            lines.push(currentLine);
+            return lines;
+        }
+    </script>
+</body>
+</html>

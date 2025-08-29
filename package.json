@@ -1,0 +1,32 @@
+{
+  "name": "green-contributions",
+  "version": "1.0.0",
+  "description": "GitHub User Search & Contributions Viewer",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "pack": "electron-builder --dir",
+    "package": "electron-packager . green-contributions --platform=win32 --arch=x64 --out=dist --asar"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3",
+    "electron-packager": "^17.1.2"
+  },
+  "build": {
+    "appId": "com.green.contributions",
+    "productName": "GitHub Contributions Viewer",
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
+  }
+}
