@@ -1,65 +1,66 @@
-# GitHub Contributions Viewer
+# ເບິ່ງການປະກອບສ່ວນ GitHub
 
-## Converting HTML to Windows Executable (.exe)
+## ການແປງ HTML ເປັນໄຟລ໌ Windows Executable (.exe)
 
-This project allows you to convert the GitHub Contributions Viewer HTML application into a standalone Windows executable (.exe) file using Electron.
+ໂຄງການນີ້ຊ່ວຍໃຫ້ທ່ານສາມາດແປງແອັບພລິເຄຊັນ HTML ເບິ່ງການປະກອບສ່ວນ GitHub ເປັນໄຟລ໌ Windows executable (.exe) ໂດຍໃຊ້ Electron.
 
-### Prerequisites
+### ຄວາມຕ້ອງການເບື້ອງຕົ້ນ
 
-- [Node.js](https://nodejs.org/) (includes npm)
-- Windows operating system
+- [Node.js](https://nodejs.org/) (ລວມມີ npm)
+- ລະບົບປະຕິບັດການ Windows
 
-### Setup and Build Instructions
+### ຄຳແນະນຳໃນການຕິດຕັ້ງແລະການສ້າງ
 
-#### Automatic Method (Recommended)
+#### ວິທີອັດຕະໂນມັດ (ແນະນຳ)
 
-1. Run the `build-app.bat` script by double-clicking it
-2. Follow the on-screen instructions
-3. When prompted, create an icon.ico file (you can convert the provided icon.svg using an online converter)
-4. Wait for the build process to complete
-5. Find your executable in the `dist` folder
+1. ເປີດໄຟລ໌ `build-app.bat` ໂດຍການດັບເບິ້ລຄລິກ
+2. ປະຕິບັດຕາມຄຳແນະນຳທີ່ປະກົດຂຶ້ນ
+3. ເມື່ອຖືກຖາມ, ສ້າງໄຟລ໌ icon.ico (ທ່ານສາມາດແປງໄຟລ໌ icon.svg ທີ່ມີໃຫ້ໂດຍໃຊ້ເຄື່ອງມືແປງອອນລາຍ)
+4. ລໍຖ້າໃຫ້ຂະບວນການສ້າງສຳເລັດ
+5. ຊອກຫາໄຟລ໌ executable ຂອງທ່ານໃນໂຟລເດີ `dist`
 
-#### Manual Method
+#### ວິທີການເຮັດດ້ວຍຕົນເອງ
 
-1. Install dependencies:
+1. ຕິດຕັ້ງ dependencies:
    ```
    npm install
    ```
 
-2. Convert the icon.svg to icon.ico using an online converter or tool
+2. ແປງໄຟລ໌ icon.svg ເປັນ icon.ico ໂດຍໃຊ້ເຄື່ອງມືແປງອອນລາຍຫຼືເຄື່ອງມືອື່ນໆ
 
-3. Build the application:
+3. ສ້າງແອັບພລິເຄຊັນ:
    ```
    npm run build
    ```
 
-4. Find your executable in the `dist` folder
+4. ຊອກຫາໄຟລ໌ executable ຂອງທ່ານໃນໂຟລເດີ `dist`
 
-### What's Included
+### ສິ່ງທີ່ລວມຢູ່ໃນນີ້
 
-- `package.json`: Defines project dependencies and build configuration
-- `main.js`: Electron application entry point
-- `icon.svg`: Application icon (needs conversion to .ico)
-- `build-app.bat`: Automated build script
-- `index.html`: The original web application
+- `package.json`: ກຳນົດ dependencies ແລະການຕັ້ງຄ່າການສ້າງຂອງໂຄງການ
+- `main.js`: ຈຸດເຂົ້າແອັບພລິເຄຊັນ Electron
+- `icon.svg`: ໄອຄອນແອັບພລິເຄຊັນ (ຕ້ອງການແປງເປັນ .ico)
+- `build-app.bat`: ສະຄຣິບສ້າງອັດຕະໂນມັດ
+- `index.html`: ແອັບພລິເຄຊັນເວັບຕົ້ນສະບັບ
 
-### Customization
+### ການປັບແຕ່ງ
 
-You can customize the application by editing:
+ທ່ານສາມາດປັບແຕ່ງແອັບພລິເຄຊັນໂດຍການແກ້ໄຂ:
 
-- `package.json`: Change application name, version, etc.
-- `main.js`: Modify window size, features, etc.
-- `icon.svg/icon.ico`: Replace with your own icon
+- `package.json`: ປ່ຽນຊື່ແອັບພລິເຄຊັນ, ເວີຊັນ, ແລະອື່ນໆ
+- `main.js`: ແກ້ໄຂຂະໜາດຂອງວິນໂດ, ຄຸນສົມບັດ, ແລະອື່ນໆ
+- `icon.svg/icon.ico`: ປ່ຽນດ້ວຍໄອຄອນຂອງທ່ານເອງ
 
-### Troubleshooting
+### ການແກ້ໄຂບັນຫາ
 
-- If you encounter errors during installation, make sure Node.js is properly installed
-- For build errors, check that all dependencies were installed correctly
-- If the icon doesn't appear, ensure you've created a valid icon.ico file
+- ຖ້າທ່ານພົບຂໍ້ຜິດພາດໃນລະຫວ່າງການຕິດຕັ້ງ, ກວດເບິ່ງວ່າ Node.js ຖືກຕິດຕັ້ງຢ່າງຖືກຕ້ອງ
+- ສຳລັບຂໍ້ຜິດພາດໃນການສ້າງ, ກວດເບິ່ງວ່າ dependencies ທັງໝົດຖືກຕິດຕັ້ງຢ່າງຖືກຕ້ອງ
+- ຖ້າໄອຄອນບໍ່ປະກົດຂຶ້ນ, ກວດເບິ່ງວ່າທ່ານໄດ້ສ້າງໄຟລ໌ icon.ico ທີ່ຖືກຕ້ອງ
 
-### Notes
+### ໝາຍເຫດ
 
-- The executable will be created in the `dist` folder
-- The installer will allow users to choose the installation directory
-- A desktop shortcut will be created automatically"# green-contribution03" 
+- ໄຟລ໌ executable ຈະຖືກສ້າງໃນໂຟລເດີ `dist`
+- ຕົວຕິດຕັ້ງຈະອະນຸຍາດໃຫ້ຜູ້ໃຊ້ເລືອກໂຟລເດີຕິດຕັ້ງ
+- ທາງລັດເດສກ໌ທັອບຈະຖືກສ້າງຂຶ້ນໂດຍອັດຕະໂນມັດ
+
 # green-contribution03
